@@ -1,11 +1,12 @@
 import os
 from aws_cdk import (
-    aws_lambda as lambda_,
-    aws_events as events,
-    aws_events_targets as targets,
-    aws_s3 as s3,
     Stack,
     RemovalPolicy,
+    aws_s3 as s3,
+    aws_lambda,
+    aws_events as events,
+    aws_events_targets as targets,
+    aws_s3_notifications as s3_notifications,
 )
 from constructs import Construct
 
@@ -20,25 +21,13 @@ class EtlPipelineStack(Stack):
         neo4j_user = os.getenv('NEO4J_USER', 'not-set')
         neo4j_password = os.getenv('NEO4J_PASSWORD', 'not-set')
 
-        # Create S3 bucket if it does not exist
-        try:
-            # Try to reference an existing bucket
-            bucket = s3.Bucket.from_bucket_name(self, "ExistingBucket", bucket_name=bucket_name)
-        except: #todo: add specific exception
-            # Create the bucket if it does not exist
-            bucket = s3.Bucket(
-                self, "HivanyaIntegrationsBucket",
-                bucket_name=bucket_name,
-                removal_policy=RemovalPolicy.RETAIN  # Retain the bucket on stack deletion
-            )
-
 
         # Define the Docker-based Lambda function
-        etl_lambda = lambda_.DockerImageFunction(
+        etl_lambda = aws_lambda.DockerImageFunction(
             self, 
             "EtlLambda",
-            code=lambda_.DockerImageCode.from_image_asset(directory="etl/pipelines"),
-            architecture=lambda_.Architecture.ARM_64,
+            code=aws_lambda.DockerImageCode.from_image_asset(directory="etl/pipelines"),
+            architecture=aws_lambda.Architecture.ARM_64,
             environment={
                 "NEO4J_URI": neo4j_uri,
                 "NEO4J_USER": neo4j_user,
@@ -46,23 +35,27 @@ class EtlPipelineStack(Stack):
             }
         )
 
-        # Grant necessary permissions
-        bucket.grant_read(etl_lambda)
+        # Create S3 bucket  and event-trigger
+        try:
+            # Reference an existing bucket, if present
+            s3_bucket = s3.Bucket.from_bucket_name(self, "ExistingBucket", bucket_name=bucket_name)
+        except: #todo: add specific exception
+            # Create the bucket if it does not exist
+            s3_bucket = s3.Bucket(
+                self, "HivanyaIntegrationsBucket",
+                bucket_name=bucket_name,
+                removal_policy=RemovalPolicy.RETAIN  # Retain the bucket on stack deletion
+            )
+        # Create an S3 event notification to trigger the Lambda function on PutObject events
+        notification = s3_notifications.LambdaDestination(etl_lambda)
+        s3_bucket.add_event_notification(
+            s3.EventType.OBJECT_CREATED_PUT,
+            notification,
+            s3.NotificationKeyFilter(prefix='airbyte/',  suffix='.csv')
+        )
 
-        # Create the EventBridge rule to trigger the Lambda function on S3 events
-        # rule = events.Rule(
-        #     self, "Rule",
-        #     event_pattern={
-        #         "source": ["aws.s3"],
-        #         "detail-type": ["Object Created"],
-        #         "detail": {
-        #             "bucket": {
-        #                 "name": [bucket.bucket_name]
-        #             }
-        #         }
-        #     }
-        # )
-        # rule.add_target(targets.LambdaFunction(etl_lambda))
+        # Grant necessary permissions
+        s3_bucket.grant_read(etl_lambda)
 
 # .env file example
 # BUCKET_NAME=my-bucket-name
