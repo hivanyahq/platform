@@ -7,22 +7,26 @@ from aws_cdk import (
     aws_events as events,
     aws_events_targets as targets,
     aws_s3_notifications as s3_notifications,
+    aws_iam as iam
 )
 from constructs import Construct
+from dotenv import load_dotenv
 
 class EtlPipelineStack(Stack):
 
     def __init__(self, scope: Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
         
-        # Read environment variables
+        load_dotenv()
+
         bucket_name = 'hivanya-integrations'
+        output_bucket_name = 'hivanya-integrations-transformed'
+        graphdb_bucket_name = 'hivanya-integrations-graphdb'
         neo4j_uri = os.getenv('NEO4J_URI', 'not-set')
         neo4j_user = os.getenv('NEO4J_USER', 'not-set')
         neo4j_password = os.getenv('NEO4J_PASSWORD', 'not-set')
+        openai_api_key = os.getenv('OPENAI_API_KEY', 'not-set')
 
-
-        # Define the Docker-based Lambda function
         etl_lambda = aws_lambda.DockerImageFunction(
             self, 
             "EtlLambda",
@@ -31,35 +35,45 @@ class EtlPipelineStack(Stack):
             environment={
                 "NEO4J_URI": neo4j_uri,
                 "NEO4J_USER": neo4j_user,
-                "NEO4J_PASSWORD": neo4j_password
+                "NEO4J_PASSWORD": neo4j_password,
+                "OPENAI_API_KEY": openai_api_key
             }
         )
 
-        # Create S3 bucket  and event-trigger
         try:
-            # Reference an existing bucket, if present
             s3_bucket = s3.Bucket.from_bucket_name(self, "ExistingBucket", bucket_name=bucket_name)
         except: #todo: add specific exception
-            # Create the bucket if it does not exist
             s3_bucket = s3.Bucket(
                 self, "HivanyaIntegrationsBucket",
                 bucket_name=bucket_name,
-                removal_policy=RemovalPolicy.RETAIN  # Retain the bucket on stack deletion
+                removal_policy=RemovalPolicy.RETAIN
             )
-        # Create an S3 event notification to trigger the Lambda function on PutObject events
+        
+        try:
+            output_bucket = s3.Bucket.from_bucket_name(self, "OutputBucket", bucket_name=output_bucket_name)
+        except: #todo: add specific exception
+            output_bucket = s3.Bucket(
+                self, "HivanyaIntegrationsTransformedBucket",
+                bucket_name=output_bucket_name,
+                removal_policy=RemovalPolicy.RETAIN
+            )
+
+        try:
+            graphdb_bucket = s3.Bucket.from_bucket_name(self, "GraphDBBucket", bucket_name=graphdb_bucket_name)
+        except: #todo: add specific exception
+            graphdb_bucket = s3.Bucket(
+                self, "HivanyaIntegrationsGraphDBBucket",
+                bucket_name=graphdb_bucket_name,
+                removal_policy=RemovalPolicy.RETAIN
+            )
+
         notification = s3_notifications.LambdaDestination(etl_lambda)
         s3_bucket.add_event_notification(
             s3.EventType.OBJECT_CREATED_PUT,
             notification,
-            s3.NotificationKeyFilter(prefix='airbyte/',  suffix='.csv')
+            s3.NotificationKeyFilter(prefix='airbyte/', suffix='.csv')
         )
 
-        # Grant necessary permissions
         s3_bucket.grant_read(etl_lambda)
-
-# .env file example
-# BUCKET_NAME=my-bucket-name
-# NEO4J_URI=your-neo4j-uri
-# NEO4J_USER=your-neo4j-user
-# NEO4J_PASSWORD=your-neo4j-password
-# SECRETS_MANAGER_ARN=arn:aws:secretsmanager:your-region:your-account-id:secret:your-secret-id
+        output_bucket.grant_put(etl_lambda)
+        graphdb_bucket.grant_put(etl_lambda)

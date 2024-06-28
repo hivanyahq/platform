@@ -1,1 +1,14 @@
-requests
+#others
+openai==0.28
+neo4j
+boto3
+# jsonlines
+# python-dotenv
+
+# # langchain
+langchain 
+langchain-community 
+# langchain-openai 
+# langchain-experimental 
+
+# unstructured[csv]
