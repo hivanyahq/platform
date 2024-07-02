@@ -49,23 +49,23 @@ class EtlPipelineStack(Stack):
                 removal_policy=RemovalPolicy.RETAIN
             )
         
-        try:
-            output_bucket = s3.Bucket.from_bucket_name(self, "OutputBucket", bucket_name=output_bucket_name)
-        except: #todo: add specific exception
-            output_bucket = s3.Bucket(
-                self, "HivanyaIntegrationsTransformedBucket",
-                bucket_name=output_bucket_name,
-                removal_policy=RemovalPolicy.RETAIN
-            )
+        # try:
+        #     output_bucket = s3.Bucket.from_bucket_name(self, "OutputBucket", bucket_name=output_bucket_name)
+        # except: #todo: add specific exception
+        #     output_bucket = s3.Bucket(
+        #         self, "HivanyaIntegrationsTransformedBucket",
+        #         bucket_name=output_bucket_name,
+        #         removal_policy=RemovalPolicy.RETAIN
+        #     )
 
-        try:
-            graphdb_bucket = s3.Bucket.from_bucket_name(self, "GraphDBBucket", bucket_name=graphdb_bucket_name)
-        except: #todo: add specific exception
-            graphdb_bucket = s3.Bucket(
-                self, "HivanyaIntegrationsGraphDBBucket",
-                bucket_name=graphdb_bucket_name,
-                removal_policy=RemovalPolicy.RETAIN
-            )
+        # try:
+        #     graphdb_bucket = s3.Bucket.from_bucket_name(self, "GraphDBBucket", bucket_name=graphdb_bucket_name)
+        # except: #todo: add specific exception
+        #     graphdb_bucket = s3.Bucket(
+        #         self, "HivanyaIntegrationsGraphDBBucket",
+        #         bucket_name=graphdb_bucket_name,
+        #         removal_policy=RemovalPolicy.RETAIN
+        #     )
 
         notification = s3_notifications.LambdaDestination(etl_lambda)
         s3_bucket.add_event_notification(
@@ -75,5 +75,5 @@ class EtlPipelineStack(Stack):
         )
 
         s3_bucket.grant_read(etl_lambda)
-        output_bucket.grant_put(etl_lambda)
-        graphdb_bucket.grant_put(etl_lambda)
+        # output_bucket.grant_put(etl_lambda)
+        # graphdb_bucket.grant_put(etl_lambda)
