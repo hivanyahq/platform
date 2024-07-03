@@ -7,7 +7,8 @@ from aws_cdk import (
     aws_ssm as ssm,
     aws_stepfunctions as sfn,
     aws_stepfunctions_tasks as tasks,
-    Fn as cdk_fn
+    Fn as cdk_fn,
+    RemovalPolicy
 )
 from constructs import Construct
 
@@ -57,24 +58,31 @@ class SlackBotStack(Stack):
         slack_secrets.grant_read(process_lambda_function)
 
         # API Gateway
-        bolt_api = apigateway.RestApi(self, "SlackBotApi",
+        bolt_api = apigateway.RestApi(
+            self, 
+            "SlackBotApi",
             rest_api_name="Interactive Slack Bot API",
-            description="This is the API service for the Interactive Slack Bot."
+            description="This is the API service for the Interactive Slack Bot.",
+            deploy_options=apigateway.StageOptions(
+                logging_level=apigateway.MethodLoggingLevel.INFO,
+                data_trace_enabled=True,
+                metrics_enabled=True,
+                # access_log_format=apigateway.AccessLogFormat.clf()
+            )
         )
 
-        # POST /slack/events
         bolt_api.root.add_proxy(
             default_integration=apigateway.StepFunctionsIntegration.start_execution(
                 validation_and_processing_state_machine,
                 passthrough_behavior=apigateway.PassthroughBehavior.NEVER,
                 request_templates={
-                    "application/x-www-form-urlencoded": cdk_fn.sub(
-                        '''
+                    "application/json": cdk_fn.sub(
+                        """
                         {
                             "stateMachineArn": "${StateMachineArn}",
-                            "input": "{\\"body\\": \\"$input.path('$')\\", \\"headers\\": {\\"X-Slack-Signature\\": \\"$input.params().header.get('X-Slack-Signature')\\", \\"X-Slack-Request-Timestamp\\": \\"$input.params().header.get('X-Slack-Request-Timestamp')\\", \\"Content-Type\\": \\"application/x-www-form-urlencoded\\"}}"
+                            "input": "{\\"body\\": $util.escapeJavaScript($input.json('$')), \\"headers\\": {\\"X-Slack-Signature\\": \\"$input.params().header.get('X-Slack-Signature')\\", \\"X-Slack-Request-Timestamp\\": \\"$input.params().header.get('X-Slack-Request-Timestamp')\\", \\"Content-Type\\": \\"application/json\\"}}"
                         }
-                        ''',
+                        """,
                         {"StateMachineArn": validation_and_processing_state_machine.state_machine_arn}
                     )
                 },

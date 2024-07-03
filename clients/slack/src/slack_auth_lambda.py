@@ -2,6 +2,7 @@ import json
 import os
 import hmac
 import hashlib
+import urllib.parse
 from time import time
 from base64 import b64decode
 
@@ -15,6 +16,7 @@ def handler(event, context):
     slack_signature = event['headers']['X-Slack-Signature']
     slack_request_timestamp = event['headers']['X-Slack-Request-Timestamp']
     request_body = event['body']
+    # url_encoded_request_body = urllib.parse.parse_qs(json.loads(request_body))
     
     if abs(time() - int(slack_request_timestamp)) > 60 * 5:
         raise Exception("Request is too old.")
@@ -23,7 +25,7 @@ def handler(event, context):
     my_signature = 'v0=' + hmac.new(signing_secret.encode('utf-8'), basestring, hashlib.sha256).hexdigest()
     
     if not hmac.compare_digest(my_signature, slack_signature):
-        raise Exception("Invalid request signature.")
+        raise Exception(f"Invalid request signature. request_body: {request_body}, url_encoded_request_body:{url_encoded_request_body}")
     
     payload = json.loads(request_body)
     return {
