@@ -71,6 +71,7 @@ class SlackBotStack(Stack):
             )
         )
 
+        #$util.escapeJavaScript($input.json('$'))
         bolt_api.root.add_proxy(
             default_integration=apigateway.StepFunctionsIntegration.start_execution(
                 validation_and_processing_state_machine,
@@ -80,7 +81,7 @@ class SlackBotStack(Stack):
                         """
                         {
                             "stateMachineArn": "${StateMachineArn}",
-                            "input": "{\\"body\\": $util.escapeJavaScript($input.json('$')), \\"headers\\": {\\"X-Slack-Signature\\": \\"$input.params().header.get('X-Slack-Signature')\\", \\"X-Slack-Request-Timestamp\\": \\"$input.params().header.get('X-Slack-Request-Timestamp')\\", \\"Content-Type\\": \\"application/json\\"}}"
+                            "input": "{\\"body\\": \\"$util.base64Encode($input.body)\\", \\"headers\\": {\\"X-Slack-Signature\\": \\"$input.params().header.get('X-Slack-Signature')\\", \\"X-Slack-Request-Timestamp\\": \\"$input.params().header.get('X-Slack-Request-Timestamp')\\", \\"Content-Type\\": \\"application/json\\"}}"
                         }
                         """,
                         {"StateMachineArn": validation_and_processing_state_machine.state_machine_arn}
