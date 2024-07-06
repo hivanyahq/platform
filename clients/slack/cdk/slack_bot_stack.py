@@ -150,7 +150,3 @@ class SlackBotStack(Stack):
             result_path=sfn.JsonPath.DISCARD
         )
 
-
-# app = core.App()
-# AppStack(app, "AppStack")
-# app.synth()

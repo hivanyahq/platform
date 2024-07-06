@@ -36,24 +36,7 @@ def handler(event, context):
     
     return {
         'statusCode': 200,
-        'body': json.dumps({
-            'challenge': request_body_json.get('challenge', ''),
-        })
+        'challenge': request_body_json.get('challenge', ''),
+        'channelId': 'D07AM8G06RY',
+        'body': json.dumps({})
     }
-
-# request_body = {
-#     "token": "NbJFc7TKjKKjEQxLJSBjQykq",
-#     "challenge": "iLBnlmcMRy8rUei3opApRMDAGZtCywizSwHrMXIJALVguPAj26gu",
-#     "type": "url_verification"
-# }
-# import base64
-
-
-
-
-# sig_base_string = 'v0:1719988958:token=NbJFc7TKjKKjEQxLJSBjQykq&challenge=Ep6qvhlQFmmVEBBLSdLz7Y5y4egHpWUjLHewaQrPf02lE96fgapC&type=url_verification'
-# hmac.new(
-#     "414d0480abd9abfd597890e2727269f3".encode('utf-8'), 
-#     'v0:1719988958:token=NbJFc7TKjKKjEQxLJSBjQykq&challenge=Ep6qvhlQFmmVEBBLSdLz7Y5y4egHpWUjLHewaQrPf02lE96fgapC&type=url_verification'.encode('utf-8'), 
-#     hashlib.sha256
-# ).hexdigest()
