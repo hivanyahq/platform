@@ -2,29 +2,28 @@ import os
 import json
 import boto3
 import base64
-import pickle
 from slack_bolt import App
 from slack_bolt.adapter.aws_lambda import SlackRequestHandler
 
-import logging
-logging.basicConfig(level=logging.DEBUG)
+# import logging
+# logging.basicConfig(level=logging.DEBUG)
 
 # Set up logging
-logger = logging.getLogger()
+# logger = logging.getLogger()
 
 # Configure logging for SlackRequestHandler
-slack_request_handler_logger = logging.getLogger('slack_bolt.adapter.aws_lambda.SlackRequestHandler')
-slack_request_handler_logger.setLevel(logging.DEBUG)
-# Define a custom handler to capture logs from SlackRequestHandler
-slack_request_handler_log_handler = logging.StreamHandler()
-slack_request_handler_log_handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-slack_request_handler_log_handler.setFormatter(formatter)
-slack_request_handler_logger.addHandler(slack_request_handler_log_handler)
+# slack_request_handler_logger = logging.getLogger('slack_bolt.adapter.aws_lambda.SlackRequestHandler')
+# slack_request_handler_logger.setLevel(logging.DEBUG)
+# # Define a custom handler to capture logs from SlackRequestHandler
+# slack_request_handler_log_handler = logging.StreamHandler()
+# slack_request_handler_log_handler.setLevel(logging.DEBUG)
+# formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# slack_request_handler_log_handler.setFormatter(formatter)
+# slack_request_handler_logger.addHandler(slack_request_handler_log_handler)
 
 
-def log_message(logger, event):
-    logger.info(f"(MSG) User: {event['user']}\nMessage: {event['text']}")
+# def log_message(logger, event):
+#     logger.info(f"(MSG) User: {event['user']}\nMessage: {event['text']}")
 
 
 class SlackAuthHandler:
@@ -49,7 +48,9 @@ class SlackAuthHandler:
         if response["statusCode"] != 200:
             raise Exception('Failed to validate slack message')
 
-        response['requestType'] = json.loads(base64.b64decode(event['body']).decode('utf-8')).get('type')
+        payload = json.loads(base64.b64decode(event['body']).decode('utf-8'))
+        response['requestType'] = payload.get('type')
+        response['challenge'] = payload.get('challenge')
 
         return response
         
