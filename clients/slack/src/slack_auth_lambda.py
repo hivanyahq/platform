@@ -1,42 +1,62 @@
-import json
 import os
-import hmac
-import hashlib
-import base64
-from time import time
-from urllib.parse import urlencode, unquote_plus
-
+import json
 import boto3
+import base64
+import pickle
+from slack_bolt import App
+from slack_bolt.adapter.aws_lambda import SlackRequestHandler
 
-def handler(event, context):
-    slack_secrets = boto3.client('secretsmanager').get_secret_value(SecretId=os.environ['SLACK_SECRETS_NAME'])
-    secrets = json.loads(slack_secrets['SecretString'])
-    signing_secret = secrets['signingSecret']
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
-    slack_signature = event['headers']['X-Slack-Signature']
-    slack_request_timestamp = event['headers']['X-Slack-Request-Timestamp']
-    # request_body = event['body']
+# Set up logging
+logger = logging.getLogger()
 
-    # url_encoded_request_body = unquote_plus(request_body)
+# Configure logging for SlackRequestHandler
+slack_request_handler_logger = logging.getLogger('slack_bolt.adapter.aws_lambda.SlackRequestHandler')
+slack_request_handler_logger.setLevel(logging.DEBUG)
+# Define a custom handler to capture logs from SlackRequestHandler
+slack_request_handler_log_handler = logging.StreamHandler()
+slack_request_handler_log_handler.setLevel(logging.DEBUG)
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+slack_request_handler_log_handler.setFormatter(formatter)
+slack_request_handler_logger.addHandler(slack_request_handler_log_handler)
 
-    encoded_request_body = event['body']
-    # Decode the base64-encoded request body
-    request_body = base64.b64decode(encoded_request_body).decode('utf-8')
-    request_body_json = json.loads(request_body)
 
-    
-    if abs(time() - int(slack_request_timestamp)) > 60 * 5:
-        raise Exception("Request is too old.")
-    
-    base_string = f"v0:{slack_request_timestamp}:{request_body}".encode('utf-8')
-    my_signature = 'v0=' + hmac.new(signing_secret.encode('utf-8'), base_string, hashlib.sha256).hexdigest()
-    
-    if not hmac.compare_digest(my_signature, slack_signature):
-        raise Exception(f"Invalid request signature. request_body:{request_body} \n base_string: {base_string} \n  my_signature: {my_signature}")
-    
-    return {
-        'statusCode': 200,
-        'challenge': request_body_json.get('challenge', ''),
-        'channelId': 'D07AM8G06RY',
-        'body': json.dumps({})
-    }
+def log_message(logger, event):
+    logger.info(f"(MSG) User: {event['user']}\nMessage: {event['text']}")
+
+
+class SlackAuthHandler:
+    def __init__(self):
+        # Init and configure Bolt App
+        secret_name = os.environ['SLACK_SECRETS_NAME']
+        secret_result = boto3.client('secretsmanager').get_secret_value(SecretId=secret_name)
+        secret_object = json.loads(secret_result['SecretString'])
+
+        self.app = App(
+            token=secret_object['botToken'],
+            signing_secret=secret_object['signingSecret']
+        )
+
+    def handler(self, event, context):
+        event['isBase64Encoded'] = True
+        handler = SlackRequestHandler(self.app)
+
+        response = handler.handle(event, context)
+        print(f"response: {response}")
+
+        if response["statusCode"] != 200:
+            raise Exception('Failed to validate slack message')
+
+        response['requestType'] = json.loads(base64.b64decode(event['body']).decode('utf-8')).get('type')
+
+        return response
+        
+
+# Create an instance of the handler class
+slack_auth_handler = SlackAuthHandler()
+
+def lambda_handler(event, context):
+    print(f"slack_auth_lambda:lambda_handler:event: {event}")
+    return slack_auth_handler.handler(event, context)

@@ -1,3 +1,4 @@
+import json
 from aws_cdk import (
     Stack,
     aws_apigateway as apigateway,
@@ -31,13 +32,17 @@ class SlackBotStack(Stack):
             string_value="<insert channel ID here in AWS Console>"
         )
 
-        # Lambda Functions
-        self.slack_auth_function = lambda_.Function(
+        # Define Docker image code from the local Dockerfile
+        docker_slack_auth_image_code = lambda_.DockerImageCode.from_image_asset(
+            "./clients/slack/",
+            cmd=["slack_auth_lambda.lambda_handler"],
+        )
+
+        self.slack_auth_function  = lambda_.DockerImageFunction(
             self, 
-            "slack-auth-lambda",
-            runtime=lambda_.Runtime.PYTHON_3_8,
-            handler="slack_auth_lambda.handler",
-            code=lambda_.Code.from_asset("./clients/slack/src/")
+            "slackAuthLambda",
+            code=docker_slack_auth_image_code,
+            architecture=lambda_.Architecture.ARM_64,
         )
 
         process_lambda_function = lambda_.Function(
@@ -71,20 +76,29 @@ class SlackBotStack(Stack):
             )
         )
 
+
         #$util.escapeJavaScript($input.json('$'))
         bolt_api.root.add_proxy(
             default_integration=apigateway.StepFunctionsIntegration.start_execution(
                 validation_and_processing_state_machine,
                 passthrough_behavior=apigateway.PassthroughBehavior.NEVER,
+                #headers=True,
+                #request_context={"http_method": True},
+                #content_handling=apigateway.ContentHandling.CONVERT_TO_BINARY,
                 request_templates={
                     "application/json": cdk_fn.sub(
                         """
                         {
                             "stateMachineArn": "${StateMachineArn}",
-                            "input": "{\\"body\\": \\"$util.base64Encode($input.body)\\", \\"headers\\": {\\"X-Slack-Signature\\": \\"$input.params().header.get('X-Slack-Signature')\\", \\"X-Slack-Request-Timestamp\\": \\"$input.params().header.get('X-Slack-Request-Timestamp')\\", \\"Content-Type\\": \\"application/json\\"}}"
+                            "input": "{\\"body\\": \\"${encodedBody}\\",\\"headers\\": {${headers}}, \\"requestContext\\": {${requestContext}} }"
                         }
                         """,
-                        {"StateMachineArn": validation_and_processing_state_machine.state_machine_arn}
+                        {
+                            "StateMachineArn": validation_and_processing_state_machine.state_machine_arn,
+                            "encodedBody": "$util.base64Encode($input.body)",
+                            "headers": """\\"X-Slack-Signature\\": \\"$input.params().header.get('X-Slack-Signature')\\", \\"X-Slack-Request-Timestamp\\": \\"$input.params().header.get('X-Slack-Request-Timestamp')\\", \\"Content-Type\\": \\"application/json\\" """,
+                            "requestContext": """\\"http\\": {\\"method\\": \\"$context.httpMethod\\"}"""
+                        }
                     )
                 },
                 integration_responses=[{
@@ -121,7 +135,10 @@ class SlackBotStack(Stack):
 
         # Validate Channel ID and process if valid
         validate_channel_id_and_process = sfn.Choice(self, "Validate and Process Channel ID").when(
-            sfn.Condition.string_equals_json_path("$.getParameterResult.Parameter.Value", "$.request.channelId"),
+            sfn.Condition.or_(
+                sfn.Condition.string_equals("$.request.requestType", "url_verification"),
+                sfn.Condition.string_equals_json_path("$.getParameterResult.Parameter.Value", "$.request.channelId")
+            ),
             tasks.LambdaInvoke(self, "Process Lambda", lambda_function=process_lambda_function, result_path="$.lambdaResult"),
         ).otherwise(
             self.send_message(
