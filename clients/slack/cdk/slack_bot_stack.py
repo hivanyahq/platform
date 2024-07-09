@@ -54,7 +54,7 @@ class SlackBotStack(Stack):
             "slackProcessLambda",
             code=lambda_.DockerImageCode.from_image_asset(
                 "./clients/slack/",
-                cmd=["slack_process_lambda.lambda_handler"],
+                cmd=["slack_process_lambda.handler"],
             ),
             # environment={"SLACK_SECRETS_NAME": slack_secrets.secret_name},
             architecture=lambda_.Architecture.ARM_64,
