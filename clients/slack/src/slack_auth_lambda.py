@@ -4,8 +4,6 @@ import boto3
 import base64
 from slack_bolt import App
 from slack_bolt.adapter.aws_lambda import SlackRequestHandler
-from slack_bolt.error import BoltUnhandledRequestError
-
 
 
 class SlackAuthHandler:

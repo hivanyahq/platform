@@ -41,7 +41,8 @@ class SlackBotStack(Stack):
             self, 
             "slackAuthLambda",
             code=lambda_.DockerImageCode.from_image_asset(
-                "./clients/slack/",
+                ".",
+                file="Dockerfile.clients.slack",
                 cmd=["slack_auth_lambda.lambda_handler"],
             ),
             environment={"SLACK_SECRETS_NAME": slack_secrets.secret_name},
@@ -53,7 +54,8 @@ class SlackBotStack(Stack):
             self, 
             "slackProcessLambda",
             code=lambda_.DockerImageCode.from_image_asset(
-                "./clients/slack/",
+                ".",
+                file="Dockerfile.clients.slack",
                 cmd=["slack_process_lambda.handler"],
             ),
             # environment={"SLACK_SECRETS_NAME": slack_secrets.secret_name},
@@ -61,16 +63,17 @@ class SlackBotStack(Stack):
         )
 
         # Define lambda for sending back messages
-        self.slack_https_client_function = lambda_.DockerImageFunction(
-            self, 
-            "slackHttpsClientLambda",
-            code=lambda_.DockerImageCode.from_image_asset(
-                "./clients/slack/",
-                cmd=["slack_https_client.lambda_handler"],
-            ),
-            environment={"SLACK_SECRETS_NAME": slack_secrets.secret_name},
-            architecture=lambda_.Architecture.ARM_64,
-        )
+        # self.slack_https_client_function = lambda_.DockerImageFunction(
+        #     self,
+        #     "slackHttpsClientLambda",
+        #     code=lambda_.DockerImageCode.from_image_asset(
+        #         ".",
+        #         file="Dockerfile.clients.slack",
+        #         cmd=["slack_https_client.lambda_handler"],
+        #     ),
+        #     environment={"SLACK_SECRETS_NAME": slack_secrets.secret_name},
+        #     architecture=lambda_.Architecture.ARM_64,
+        # )
 
         # State Machine
         processing_state_machine = self.build_validate_and_process_state_machine(
@@ -192,12 +195,13 @@ class SlackBotStack(Stack):
                         tasks.LambdaInvoke(
                             self, "Process Lambda", lambda_function=process_lambda_function, result_path="$.lambdaResult"
                         )
-                    ).otherwise(
-                        self.send_message(
-                            "Unauthorized User Message",
-                            {"text": "You are not authorized to use this command here", "response_type": "ephemeral"},
-                        )
                     )
+                    # .otherwise(
+                    #     self.send_message(
+                    #         "Unauthorized User Message",
+                    #         {"text": "You are not authorized to use this command here", "response_type": "ephemeral"},
+                    #     )
+                    # )
                 )
             )
         )
@@ -213,10 +217,10 @@ class SlackBotStack(Stack):
         )
 
 
-    def send_message(self, id: str, body: dict, response_url_path: str = "request.responseUrl") -> tasks.LambdaInvoke:
-        return tasks.LambdaInvoke(self, id,
-            lambda_function=self.slack_https_client_function,
-            payload=sfn.TaskInput.from_object({"url.$": f"$.{response_url_path}", "body": body}),
-            result_path=sfn.JsonPath.DISCARD
-        )
+    # def send_message(self, id: str, body: dict, response_url_path: str = "request.responseUrl") -> tasks.LambdaInvoke:
+    #     return tasks.LambdaInvoke(self, id,
+    #         lambda_function=self.slack_https_client_function,
+    #         payload=sfn.TaskInput.from_object({"url.$": f"$.{response_url_path}", "body": body}),
+    #         result_path=sfn.JsonPath.DISCARD
+    #     )
 

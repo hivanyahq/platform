@@ -3,6 +3,8 @@ import json
 import boto3
 import requests
 
+from query_engine import core  as qe_core
+
 # Initialize AWS clients
 secrets_client = boto3.client('secretsmanager')
 
@@ -23,21 +25,11 @@ def send_slack_message(channel_id, text):
             headers={'Authorization': f'Bearer {slack_token}', 'Content-Type': 'application/json'}
         )
         response.raise_for_status()
-        return {
-            'statusCode': response.status_code,
-            'body': response.json()
-        }
-    except requests.exceptions.HTTPError as http_err:
-        return {
-            'statusCode': response.status_code,
-            'body': {'error': str(http_err)}
-        }
+        return {'statusCode': response.status_code, 'body': response.json()}
+    except requests.exceptions.HTTPError as err:
+        return {'statusCode': response.status_code, 'body': {'error': str(err)}}
     except Exception as e:
-        return {
-            'statusCode': 500,
-            'body': {'error': str(e)}
-
-        }
+        return {'statusCode': 500, 'body': {'error': str(e)}}
 
 
 def handler(event, context):
@@ -47,10 +39,9 @@ def handler(event, context):
     is_bot = event['request']['is_bot']
 
     if not is_bot:
-        processed_text = f"Hello from Hivanya! {text}",
+        processed_text = qe_core.generate_reponse(text)
         return send_slack_message(channel_id, processed_text)
 
-    # Add your message processing logic here
     return {
         'statusCode': 200,
         'body': {'message': "Slack-bot message event"}
