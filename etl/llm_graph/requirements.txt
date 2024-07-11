@@ -1,0 +1,14 @@
+#others
+openai==1.35.13
+neo4j
+boto3
+# jsonlines
+# python-dotenv
+
+# langchain
+langchain==0.2.7
+langchain-community==0.2.7
+langchain-experimental==0.0.62
+langchain-openai==0.1.15
+
+# unstructured[csv]

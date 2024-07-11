@@ -1,0 +1,44 @@
+[
+  {
+    "label": "Jira",
+    "props": [
+      "id",
+      "project_key",
+      "assignee_id",
+      "text",
+      "author_id",
+      "issue_id",
+      "description",
+      "title",
+      "issue_type",
+      "status",
+      "active"
+    ]
+  },
+  {
+    "label": "Confluence",
+    "props": [
+      "id",
+      "display_name",
+      "type"
+    ]
+  },
+  {
+    "label": "Slack",
+    "props": [
+      "id",
+      "name",
+      "user",
+      "text"
+    ]
+  },
+  {
+    "label": "Github",
+    "props": [
+      "id",
+      "name",
+      "user",
+      "text"
+    ]
+  }
+]
