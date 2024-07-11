@@ -3,6 +3,7 @@ import os
 
 from aws_cdk import App, Environment
 from core.cdk.core_hivanya_stack import CoreHivanyaStack
+from etl.cdk.etl_llm_stack import EtlLlmStack
 from etl.cdk.etl_pipeline_stack import EtlPipelineStack
 
 # Load from environment variables or provide default values
@@ -24,5 +25,6 @@ core_hivanya_stack = CoreHivanyaStack(app, "CoreHivanyaStack", env=env)
 # Assuming EtlPipelineStack requires additional parameters from CoreHivanyaStack
 #etl_pipeline_stack = EtlPipelineStack(app, "EtlPipelineStack", env=env, core_hivanya_stack=core_hivanya_stack)
 etl_pipeline_stack = EtlPipelineStack(app, "EtlPipelineStack", env=env)
+etl_llm_stack = EtlLlmStack(app, "EtlLlmStack", env=env)
 
 app.synth()
