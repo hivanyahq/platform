@@ -19,15 +19,17 @@ def send_slack_message(channel_id, text):
     slack_token = slack_secrets['botToken']
 
     try:
-        response = requests.post(
-            "https://slack.com/api/chat.postMessage",
-            json={'channel': channel_id, 'text': text},
-            headers={'Authorization': f'Bearer {slack_token}', 'Content-Type': 'application/json'}
-        )
-        response.raise_for_status()
-        return {'statusCode': response.status_code, 'body': response.json()}
+        # response = requests.post(
+        #     "https://slack.com/api/chat.postMessage",
+        #     json={'channel': channel_id, 'text': text},
+        #     headers={'Authorization': f'Bearer {slack_token}', 'Content-Type': 'application/json'}
+        # )
+        # response.raise_for_status()
+        # return {'statusCode': response.status_code, 'body': response.json()}
+        return {'statusCode': 200, 'body': "Uncomment posting to slack"}
     except requests.exceptions.HTTPError as err:
-        return {'statusCode': response.status_code, 'body': {'error': str(err)}}
+        #return {'statusCode': response.status_code, 'body': {'error': str(err)}}
+        return {'statusCode': 200, 'body': {'error': str(err)}}
     except Exception as e:
         return {'statusCode': 500, 'body': {'error': str(e)}}
 
