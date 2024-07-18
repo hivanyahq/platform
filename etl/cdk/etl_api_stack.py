@@ -4,10 +4,12 @@ import subprocess
 from aws_cdk import core
 from etl_pipeline_stack import EtlPipelineStack
 
+
 class EtlApiStack(core.App):
     def __init__(self, customer_id, config, secrets):
         super().__init__()
         EtlPipelineStack(self, f"CustomerStack-{customer_id}", config, secrets)
+
 
 # def main():
 #     # Fetch customer_id and config from an external source

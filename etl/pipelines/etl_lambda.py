@@ -7,11 +7,11 @@ def lambda_handler(event, context):
     # Extract bucket name and object key from the event
     # bucket_name = event['Records'][0]['s3']['bucket']['name']
     # object_key = event['Records'][0]['s3']['object']['key']
-    
+
     # Initialize the components
     # transformer = AirbyteTransformer()
     # loader = Neo4jLoader()
-    
+
     # Mock: Read data from S3 (to be replaced with actual S3 read logic)
     # raw_data = "raw data from s3"
 

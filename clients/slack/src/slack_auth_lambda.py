@@ -5,7 +5,7 @@ import logging
 from slack_bolt import App
 from slack_bolt.adapter.aws_lambda import SlackRequestHandler
 
-from query_engine import core  as qe_core
+from query_engine import core as qe_core
 
 SlackRequestHandler.clear_all_log_handlers()
 logging.basicConfig(format="%(asctime)s %(message)s", level=logging.DEBUG)
@@ -13,18 +13,19 @@ logging.basicConfig(format="%(asctime)s %(message)s", level=logging.DEBUG)
 
 IGNORED_SLACK_EVENTS = ("bot_message", "message_deleted")
 SLACK_BOT_SECRET = json.loads(
-    boto3.client('secretsmanager').get_secret_value(
-        SecretId=os.environ['SLACK_SECRETS_NAME']
-    )['SecretString']
+    boto3.client("secretsmanager").get_secret_value(
+        SecretId=os.environ["SLACK_SECRETS_NAME"]
+    )["SecretString"]
 )
-os.environ["SLACK_SIGNING_SECRET"] = SLACK_BOT_SECRET['signingSecret']
-os.environ["SLACK_BOT_TOKEN"] = SLACK_BOT_SECRET['botToken']
+os.environ["SLACK_SIGNING_SECRET"] = SLACK_BOT_SECRET["signingSecret"]
+os.environ["SLACK_BOT_TOKEN"] = SLACK_BOT_SECRET["botToken"]
 
 app = App(
     process_before_response=True,
-    token=SLACK_BOT_SECRET['botToken'],
-    signing_secret=SLACK_BOT_SECRET['signingSecret'],
+    token=SLACK_BOT_SECRET["botToken"],
+    signing_secret=SLACK_BOT_SECRET["signingSecret"],
 )
+
 
 @app.event("message", matchers=[lambda m: m.get("subtype") not in IGNORED_SLACK_EVENTS])
 def handle_message(body, say, logger):
@@ -32,11 +33,13 @@ def handle_message(body, say, logger):
     reply = qe_core.generate_reponse(body)
     say(f"{body} >> {reply}")
 
+
 def lambda_handler(event, context):
     slack_handler = SlackRequestHandler(app=app)
     slack_response = slack_handler.handle(event, context)
     print("slack_response: {slack_response}")
     return slack_response
+
 
 # class SlackAuthHandler:
 #     def __init__(self):
