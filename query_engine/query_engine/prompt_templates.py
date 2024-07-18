@@ -38,7 +38,7 @@ retrieval_qa_chat_prompt = FewShotPromptTemplate(
     examples=few_shot_examples,
     example_prompt=example_prompt,
     input_variables=["context"],
-    prefix=f"""
+    prefix="""
 You are an intelligent assistant for a company. You understand every jargon of the tech world related to but not limited to Jira, Slack, etc. You should combine context from various sources and make it more reliable.
 Important Instruction: Never return any user id or sensitive ids. You can return email id of a queried person.
 The graph database contains nodes and relationships that represent various entities and their interactions within a company's Confluence, Slack, and Jira systems.

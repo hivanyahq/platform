@@ -3,11 +3,11 @@ from dotenv import load_dotenv
 from langchain.agents import initialize_agent, AgentType, Tool
 from langchain.chat_models import ChatOpenAI
 
-# Load environment variables from .env file globally
-load_dotenv()
-
 from query_engine.agents import initialize_agents
 from query_engine.prompt_templates import retrieval_qa_chat_prompt
+
+# Load environment variables from .env file globally
+load_dotenv()
 
 
 class QueryEngine(object):

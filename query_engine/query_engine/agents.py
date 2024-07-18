@@ -1,18 +1,9 @@
 import warnings
 from langchain._api import LangChainDeprecationWarning
-
-warnings.simplefilter("ignore", category=LangChainDeprecationWarning)
-
-# import sys
-# import os
-# # Add the project root to sys.path
-# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..')))
-
 from langchain.agents import initialize_agent, AgentType, Tool
 from langchain.chat_models import ChatOpenAI
-from langchain.chains import create_retrieval_chain
+from langchain.chains import create_retrieval_chain, GraphCypherQAChain
 from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain.chains import GraphCypherQAChain
 from langchain_community.graphs import Neo4jGraph
 from langchain.prompts import PromptTemplate
 
@@ -21,6 +12,8 @@ from query_engine.prompt_templates import (
     retrieval_qa_chat_prompt,
     CYPHER_GENERATION_TEMPLATE,
 )
+
+warnings.simplefilter("ignore", category=LangChainDeprecationWarning)
 
 
 def create_chain(retriever, retrieval_qa_chat_prompt, api_key):
