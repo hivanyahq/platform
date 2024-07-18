@@ -37,7 +37,7 @@ class SlackBotStack(Stack):
             code=lambda_.DockerImageCode.from_image_asset(
                 ".",
                 file="Dockerfile.clients.slack",
-                cmd=["slack_auth_lambda.lambda_handler"],
+                cmd=["slack_process_lambda.lambda_handler"],
             ),
             environment={"SLACK_SECRETS_NAME": slack_secrets.secret_name},
             architecture=lambda_.Architecture.ARM_64,
@@ -45,8 +45,6 @@ class SlackBotStack(Stack):
 
         # Grant Permissions
         slack_secrets.grant_read(self.slack_auth_function)
-        # self.channel_id_parameter.grant_read(processing_state_machine)
-        # slack_secrets.grant_read(self.slack_process_function)
 
         # API Gateway
         bolt_api = apigateway.RestApi(
