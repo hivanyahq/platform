@@ -1,4 +1,3 @@
-import os
 import json
 import boto3
 import requests
@@ -17,8 +16,8 @@ def get_slack_secrets(secret_name):
 
 # Lambda handler
 def send_slack_message(channel_id, text):
-    slack_secrets = get_slack_secrets(os.environ["SLACK_SECRETS_NAME"])
-    slack_token = slack_secrets["botToken"]
+    #slack_secrets = get_slack_secrets(os.environ["SLACK_SECRETS_NAME"])
+    #slack_token = slack_secrets["botToken"]
 
     try:
         # response = requests.post(

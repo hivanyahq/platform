@@ -4,11 +4,11 @@ from aws_cdk import (
     RemovalPolicy,
     aws_s3 as s3,
     aws_lambda,
-    aws_events as events,
-    aws_events_targets as targets,
     aws_s3_notifications as s3_notifications,
 )
 from constructs import Construct
+from botocore.exceptions import ClientError
+
 
 
 class EtlPipelineStack(Stack):
@@ -34,20 +34,24 @@ class EtlPipelineStack(Stack):
             },
         )
 
-        # Create S3 bucket  and event-trigger
+        # Create S3 bucket and event-trigger
         try:
             # Reference an existing bucket, if present
             s3_bucket = s3.Bucket.from_bucket_name(
                 self, "ExistingBucket", bucket_name=bucket_name
             )
-        except:  # todo: add specific exception
+        except ClientError as e:
             # Create the bucket if it does not exist
-            s3_bucket = s3.Bucket(
-                self,
-                "HivanyaIntegrationsBucket",
-                bucket_name=bucket_name,
-                removal_policy=RemovalPolicy.RETAIN,  # Retain the bucket on stack deletion
-            )
+            if e.response['Error']['Code'] == 'NoSuchBucket':
+                s3_bucket = s3.Bucket(
+                    self,
+                    "HivanyaIntegrationsBucket",
+                    bucket_name=bucket_name,
+                    removal_policy=RemovalPolicy.RETAIN,  # Retain the bucket on stack deletion
+                )
+            else:
+                raise
+
         # Create an S3 event notification to trigger the Lambda function on PutObject events
         notification = s3_notifications.LambdaDestination(etl_lambda)
         s3_bucket.add_event_notification(

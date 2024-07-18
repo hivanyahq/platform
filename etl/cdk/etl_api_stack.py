@@ -1,6 +1,3 @@
-import boto3
-import json
-import subprocess
 from aws_cdk import core
 from etl_pipeline_stack import EtlPipelineStack
 

@@ -1,9 +1,7 @@
-import json
 from aws_cdk import (
     Stack,
     aws_apigateway as apigateway,
     aws_lambda as lambda_,
-    aws_logs as logs,
     aws_secretsmanager as secretsmanager,
     aws_ssm as ssm,
 )
