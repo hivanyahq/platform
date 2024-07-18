@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='query_engine',
-    version='1.0',
+    name="query_engine",
+    version="1.0",
     packages=find_packages(),
     install_requires=[
         'requests',
