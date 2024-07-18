@@ -172,3 +172,10 @@ __pycache__
 # CDK asset staging directory
 .cdk.staging
 cdk.out
+
+# Ignore all .env files
+.env
+.env.*
+
+# Do not ignore .env.example
+!.env.example

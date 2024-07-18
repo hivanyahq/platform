@@ -9,13 +9,8 @@ setup(
         'neo4j',
         'langchain',
         'openai',
-        'python-dotenv'
+        'python-dotenv',
         'langchain-community',
         'embeddings'
     ],
-    entry_points={
-        'console_scripts': [
-            'query_engine=query_engine.main:main',
-        ],
-    },
 )

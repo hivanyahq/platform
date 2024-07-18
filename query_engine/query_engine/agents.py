@@ -11,24 +11,24 @@ from langchain.agents import initialize_agent, AgentType, Tool
 from langchain.chat_models import ChatOpenAI
 from langchain.chains import create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
-from embeddings import Neo4jEmbeddingManager
-from prompt_templates import retrieval_qa_chat_prompt, CYPHER_GENERATION_TEMPLATE
 from langchain.chains import GraphCypherQAChain
 from langchain_community.graphs import Neo4jGraph
 from langchain.prompts import PromptTemplate
 
-from config import NEO4J_URL, NEO4J_USER, NEO4J_PASSWORD, OPENAI_API_KEY
+from query_engine.embeddings import Neo4jEmbeddingManager
+from query_engine.prompt_templates import retrieval_qa_chat_prompt, CYPHER_GENERATION_TEMPLATE
 
-def create_chain(retriever, retrieval_qa_chat_prompt):
+
+def create_chain(retriever, retrieval_qa_chat_prompt, api_key):
     #Creating retrieveal chain for each tool
-    llm = ChatOpenAI(temperature=0, model_name="gpt-4", api_key=OPENAI_API_KEY)
+    llm = ChatOpenAI(temperature=0, model_name="gpt-4", api_key=api_key)
     combine_documents_chain = create_stuff_documents_chain(llm, retrieval_qa_chat_prompt)
     return create_retrieval_chain(
         retriever=retriever, 
         combine_docs_chain=combine_documents_chain
     )
 
-def initialize_agents():
+def initialize_agents(neo4j_url, neo4j_user, neo4j_password, openai_key):
     embedding_manager = Neo4jEmbeddingManager()
     chains = {}
     labels = ["atlassian_user", "jira_comment", "jira_issue", "jira_sprint", "jira_project", "confluence_space", "confluence_page", "slack_channel", "slack_user", "slack_message"]
@@ -39,18 +39,18 @@ def initialize_agents():
         
         retriever= embedding_manager.get_retriever(label)
         print("created index of:", label)
-        chains[label] = create_chain(retriever.as_retriever(), retrieval_qa_chat_prompt)
+        chains[label] = create_chain(retriever.as_retriever(), retrieval_qa_chat_prompt, openai_key)
     
     CYPHER_GENERATION_PROMPT = PromptTemplate(
         input_variables=["question"], template=CYPHER_GENERATION_TEMPLATE
     )
 
     #Creating cypher query tool
-    graph = Neo4jGraph(url=NEO4J_URL, username= NEO4J_USER, password=NEO4J_PASSWORD)
+    graph = Neo4jGraph(url=neo4j_url, username= neo4j_user, password=neo4j_password)
 
     graph.refresh_schema()
     graphChain = GraphCypherQAChain.from_llm(cypher_prompt= CYPHER_GENERATION_PROMPT,llm = 
-        ChatOpenAI(temperature=0, model_name="gpt-4", api_key=OPENAI_API_KEY), graph=graph, verbose=True
+        ChatOpenAI(temperature=0, model_name="gpt-4", api_key=openai_key), graph=graph, verbose=True
     )
 
 
@@ -158,12 +158,12 @@ def initialize_agents():
     ]
 
     #Initializing the agents
-    jira_agent = initialize_agent(tools=jira_tools, llm=ChatOpenAI(temperature=0, model_name="gpt-4", api_key = OPENAI_API_KEY), agent_type=AgentType.OPENAI_FUNCTIONS, prompt=retrieval_qa_chat_prompt, verbose=True)
-    slack_agent = initialize_agent(tools=slack_tools, llm=ChatOpenAI(temperature=0, model_name="gpt-4", api_key = OPENAI_API_KEY), agent_type=AgentType.OPENAI_FUNCTIONS, prompt=retrieval_qa_chat_prompt, verbose=True)
-    confluence_agent = initialize_agent(tools=confluence_tools, llm=ChatOpenAI(temperature=0, model_name="gpt-4", api_key = OPENAI_API_KEY), agent_type=AgentType.OPENAI_FUNCTIONS, prompt=retrieval_qa_chat_prompt, verbose=True)
+    jira_agent = initialize_agent(tools=jira_tools, llm=ChatOpenAI(temperature=0, model_name="gpt-4", api_key = openai_key), agent_type=AgentType.OPENAI_FUNCTIONS, prompt=retrieval_qa_chat_prompt, verbose=True)
+    slack_agent = initialize_agent(tools=slack_tools, llm=ChatOpenAI(temperature=0, model_name="gpt-4", api_key = openai_key), agent_type=AgentType.OPENAI_FUNCTIONS, prompt=retrieval_qa_chat_prompt, verbose=True)
+    confluence_agent = initialize_agent(tools=confluence_tools, llm=ChatOpenAI(temperature=0, model_name="gpt-4", api_key = openai_key), agent_type=AgentType.OPENAI_FUNCTIONS, prompt=retrieval_qa_chat_prompt, verbose=True)
     user_agent = initialize_agent(
         tools=user_tools,
-        llm=ChatOpenAI(temperature=0, model_name="gpt-4", api_key = OPENAI_API_KEY),
+        llm=ChatOpenAI(temperature=0, model_name="gpt-4", api_key = openai_key),
         agent_type=AgentType.OPENAI_FUNCTIONS,
         prompt= retrieval_qa_chat_prompt,
         verbose=True
