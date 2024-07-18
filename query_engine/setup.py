@@ -5,12 +5,12 @@ setup(
     version="1.0",
     packages=find_packages(),
     install_requires=[
-        'requests',
-        'neo4j',
-        'langchain',
-        'openai',
-        'python-dotenv',
-        'langchain-community',
-        'embeddings'
+        "requests",
+        "neo4j",
+        "langchain",
+        "openai",
+        "python-dotenv",
+        "langchain-community",
+        "embeddings",
     ],
 )

@@ -12,8 +12,8 @@ few_shot_examples = [
         "cypher_queries": [
             "MATCH (u:atlassian_user {display_name: 'Tejasvi'}) RETURN u.id",
             "MATCH (i:jira_issue {assignee_id: '{id}'}) RETURN i",
-            "MATCH (s:jira_story {assignee_id: '{id}'}) RETURN s"
-        ]
+            "MATCH (s:jira_story {assignee_id: '{id}'}) RETURN s",
+        ],
     },
     {
         "query": "Who is working on the project query search using GenAI?",
@@ -25,14 +25,13 @@ few_shot_examples = [
         "cypher_queries": [
             "MATCH (i:jira_issue) WHERE i.description CONTAINS 'GenAI' RETURN i.assignee_id",
             "MATCH (i:jira_comment) WHERE i.description CONTAINS 'GenAI' RETURN i.author_id",
-            "MATCH (u:atlassian_user {id: '{assignee_id}'}) RETURN u.display_name"
-        ]
-    }
+            "MATCH (u:atlassian_user {id: '{assignee_id}'}) RETURN u.display_name",
+        ],
+    },
 ]
 
 example_prompt = PromptTemplate(
-    input_variables=["query", "context"],
-    template="Query: {query}\nContext: {context}"
+    input_variables=["query", "context"], template="Query: {query}\nContext: {context}"
 )
 
 retrieval_qa_chat_prompt = FewShotPromptTemplate(
@@ -74,7 +73,7 @@ Indexed properties:
 Examples:
 """,
     suffix="Answer the question in detail based on the provided context: {context}",
-    example_separator="\n\n"
+    example_separator="\n\n",
 )
 
 CYPHER_GENERATION_TEMPLATE = """Task:Generate Cypher statement to query a graph database and do similarity search.
