@@ -139,7 +139,8 @@ class Airbyte2jsonlTransformer(object):
         logger.info(f"Generated {output_file}")
 
     def can_transform(self, mapkey):
-        return (mapkey in self.s3_files_field_map)
+        return mapkey in self.s3_files_field_map
+
 
 class GraphGeneratorBase:
     def __init__(self):

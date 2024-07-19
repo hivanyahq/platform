@@ -1,5 +1,3 @@
-import os
-import json
 from aws_cdk import (
     Stack,
     Duration,
@@ -26,8 +24,12 @@ class HiVanyaEtlStack(Stack):
             environment={
                 "NEO4J_URI": secrets.secret_value_from_json("NEO4J_URI").to_string(),
                 "NEO4J_USER": secrets.secret_value_from_json("NEO4J_USER").to_string(),
-                "NEO4J_PASSWORD": secrets.secret_value_from_json("NEO4J_PASSWORD").to_string(),
-                "OPENAI_API_KEY": secrets.secret_value_from_json("OPENAI_API_KEY").to_string(),
+                "NEO4J_PASSWORD": secrets.secret_value_from_json(
+                    "NEO4J_PASSWORD"
+                ).to_string(),
+                "OPENAI_API_KEY": secrets.secret_value_from_json(
+                    "OPENAI_API_KEY"
+                ).to_string(),
             },
             timeout=Duration.minutes(5),
         )
@@ -40,7 +42,7 @@ class HiVanyaEtlStack(Stack):
             )
         except ClientError as e:
             # Create the bucket if it does not exist
-            if e.response['Error']['Code'] == 'NoSuchBucket':
+            if e.response["Error"]["Code"] == "NoSuchBucket":
                 s3_bucket = s3.Bucket(
                     self,
                     "HivanyaIntegrationsBucket",

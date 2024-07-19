@@ -1,4 +1,3 @@
-import os
 import json
 from aws_cdk import Stack
 from constructs import Construct
@@ -15,18 +14,20 @@ class HiVanyaCoreStack(Stack):
             "HiVanyaCoreSecrets",
             secret_name="HiVanyaCoreSecrets",
             generate_secret_string=SecretStringGenerator(
-                secret_string_template=json.dumps({
-                    "botToken": "not-set",
-                    "signingSecret": "not-set",
-                    "NEO4J_URI": "not-set",
-                    "NEO4J_USER": "not-set",
-                    "NEO4J_PASSWORD": "not-set",
-                    "OPENAI_API_KEY": "not-set",
-                    "AIRBYTE_DELIVERY_BUCKET": "not-set"
-                }),
+                secret_string_template=json.dumps(
+                    {
+                        "botToken": "not-set",
+                        "signingSecret": "not-set",
+                        "NEO4J_URI": "not-set",
+                        "NEO4J_USER": "not-set",
+                        "NEO4J_PASSWORD": "not-set",
+                        "OPENAI_API_KEY": "not-set",
+                        "AIRBYTE_DELIVERY_BUCKET": "not-set",
+                    }
+                ),
                 generate_string_key="randomPassword",
-                exclude_characters="/\\\"'@"
-            )
+                exclude_characters="/\\\"'@",
+            ),
         )
 
     # Todo: Setup Core Stacks

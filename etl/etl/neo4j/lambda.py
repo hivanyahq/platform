@@ -43,6 +43,7 @@ GRAPH_GENERATOR_MAP = {
     "confluence": ConfluenceGraphGenerator,
 }
 
+
 def lambda_handler(event, context):
     try:
         logger.info(f"Received event: {json.dumps(event)}")
