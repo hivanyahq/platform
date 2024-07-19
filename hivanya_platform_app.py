@@ -6,15 +6,12 @@ from core.cdk.core_hivanya_stack import CoreHivanyaStack
 from etl.cdk.etl_pipeline_stack import EtlPipelineStack
 
 # Load from environment variables or provide default values
-AWS_ACCOUNT_ID = os.getenv('AWS_ACCOUNT_ID', '533267214222')
-AWS_REGION = os.getenv('AWS_REGION', 'us-east-1')
-AWS_VPC_ID = os.getenv('AWS_VPC_ID', 'default-vpc-id')
-AWS_ENV = os.getenv('AWS_ENV', 'default-env')
+AWS_ACCOUNT_ID = os.getenv("AWS_ACCOUNT_ID", "533267214222")
+AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
+AWS_VPC_ID = os.getenv("AWS_VPC_ID", "default-vpc-id")
+AWS_ENV = os.getenv("AWS_ENV", "default-env")
 
-env = Environment(
-    account=AWS_ACCOUNT_ID,
-    region=AWS_REGION
-)
+env = Environment(account=AWS_ACCOUNT_ID, region=AWS_REGION)
 
 app = App()
 
