@@ -15,4 +15,4 @@ COPY setup.py ${LAMBDA_TASK_ROOT}
 RUN pip3 install -e ${LAMBDA_TASK_ROOT}
 
 # Set the CMD to your handler
-CMD ["etl.lambdas.neo4j.lambda_handler"]
+CMD ["etl.neo4j.lambda.lambda_handler"]
