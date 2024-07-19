@@ -2,9 +2,10 @@ import os
 import json
 import boto3
 import logging
-from .embedding import Neo4jEmbeddingManager
-from .upload import Neo4jUploader
-from ..utils.field_map import FIELD_MAP
+
+from etl.field_map import FIELD_MAP
+from etl.neo4j.upload import Neo4jUploader
+from etl.neo4j.embedding import Neo4jEmbeddingManager
 from etl.transforms import (
     Airbyte2jsonlTransformer,
     ConfluenceGraphGenerator,
