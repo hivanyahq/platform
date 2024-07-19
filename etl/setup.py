@@ -8,7 +8,7 @@ setup(
         "openai==0.28",
         "neo4j",
         "boto3",
-        #"botocore",
+        # "botocore",
         "langchain",
         "langchain-community",
     ],

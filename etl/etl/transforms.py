@@ -1,10 +1,145 @@
 import os
+import csv
 import json
 import logging
+
 
 # Initialize the logger
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
+
+
+class Airbyte2jsonlTransformer(object):
+    def __init__(self):
+        self.s3_files_field_map = {
+            "confluence/space": {
+                "id": "data['id']",
+                "key": "data['key']",
+                "name": "data['name']",
+                "type": "data['type']",
+            },
+            "confluence/pages": {
+                "id": "data['id']",
+                "type": "data['type']",
+                "title": "data['title']",
+                "author_id": "data['history']['createdBy']['accountId']",
+                "author_name": "data['history']['createdBy']['displayName']",
+                "created": "data['history']['createdDate']",
+            },
+            "jira/users": {
+                "id": "data['accountId']",
+                "email": "data['emailAddress']",
+                "display_name": "data['displayName']",
+            },
+            "jira/projects": {
+                "id": "data['id']",
+                "project_key": "data['key']",
+                "title": "data['name']",
+                "description": "data['description']",
+                "assignee_id": "data['lead']['accountId']",
+            },
+            "jira/boards": {
+                "id": "data['id']",
+                "project_id": "data['projectId']",
+            },
+            "jira/sprints": {
+                "id": "data['id']",
+                "name": "data['name']",
+                "start_date": "data['startDate']",
+                "end_date": "data['endDate']",
+                "board_id": "data['boardId']",
+                "state": "data['state']",
+            },
+            "jira/issues": {
+                "assignee_id": "data['fields']['assignee']['accountId']",
+                "created": "data['fields']['created']",
+                "creator_id": "data['fields']['creator']['accountId']",
+                "description": "data['fields']['issuetype']['description']",
+                "id": "data['id']",
+                "issue_type": "data['fields']['issuetype']['name']",
+                "key": "data['key']",
+                "parent_key": "data['fields']['parent']['key']",
+                "project_id": "data['fields']['project']['id']",
+                "status": "data['fields']['status']['statusCategory']['name']",
+                "title": "data['fields']['summary']",
+                "updated": "data['fields']['updated']",
+            },
+            "jira/issue_comments": {
+                "id": "data['id']",
+                "author_id": "data['author']['accountId']",
+                "text": "','.join([', '.join([x['text'] for x in ic['content']]) for ic in data['body'].get('content', [])])",
+                "issue_id": "data['issueId']",
+                "created": "data['created']",
+            },
+            "jira/sprint_issues": {
+                "sprint_id": "data['sprintId']",
+                "issue_id": "data['issueId']",
+            },
+            "slack/channels": {
+                "id": "data['id']",
+                "name": "data['name']",
+                "creator": "data['creator']",
+                "purpose_value": "data['purpose']['value']",
+                "is_private": "data['is_private']",
+                "num_members": "data['num_members']",
+                "created": "data['created']",
+            },
+            "slack/channel_messages": {
+                "id": "data['client_msg_id']",
+                "user": "data['user']",
+                "text": "data['text']",
+                "team": "data['team']",
+                "channel_id": "data['channel_id']",
+                "created": "data['ts']",
+            },
+            "slack/users": {
+                "id": "data['id']",
+                "team_id": "data['team_id']",
+                "name": "data['real_name']",
+                "first_name": "data['profile']['first_name']",
+                "last_name": "data['profile']['last_name']",
+                "title": "data['profile']['title']",
+                "email": "data['profile']['email']",
+                "is_admin": "data['is_admin']",
+            },
+        }
+
+    def transform_airbyte_row(self, data, mapkey):
+        """
+        Evaluates expressions from fieldmap using the provided data dict for eval.
+        """
+        evaluated_values = {}
+        for key, path in self.s3_files_field_map[mapkey].items():
+            try:
+                evaluated_values[key] = eval(path, {"data": data})
+            except KeyError:
+                evaluated_values[key] = None
+        return evaluated_values
+
+    def transform_airbyte2jsonl_format(self, source_file, output_file, mapkey):
+        """
+        Only fields defined in s3_files_field_map are transformed.
+        """
+        with open(output_file, "w") as fh:
+            with open(source_file, "r", newline="") as csv_file:
+                reader = csv.DictReader(
+                    csv_file,
+                    fieldnames=[
+                        "_airbyte_ab_id",
+                        "_airbyte_emitted_at",
+                        "_airbyte_data",
+                    ],
+                )
+                next(reader)
+                for row in reader:
+                    data = self.transform_airbyte_row(
+                        json.loads(row["_airbyte_data"]), mapkey
+                    )
+                    fh.write(f"{json.dumps(data)}\n")
+        logger.info(f"Generated {output_file}")
+
+    def can_transform(self, mapkey):
+        return mapkey in self.s3_files_field_map
 
 
 class GraphGeneratorBase:

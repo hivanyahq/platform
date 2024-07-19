@@ -1,4 +1,3 @@
-import os
 from aws_cdk import (
     Stack,
     Duration,
@@ -7,42 +6,43 @@ from aws_cdk import (
     aws_lambda,
     aws_s3_notifications as s3_notifications,
 )
+from aws_cdk.aws_secretsmanager import Secret
 from constructs import Construct
 from botocore.exceptions import ClientError
 
 
-class EtlPipelineStack(Stack):
-    def __init__(self, scope: Construct, id: str, **kwargs) -> None:
+class HiVanyaEtlStack(Stack):
+    def __init__(self, scope: Construct, id: str, secrets: Secret, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
-        # todo: setup in core stack and read from there
-        bucket_name = "hivanya-integrations"
-        neo4j_uri = os.getenv("NEO4J_URI", "not-set")
-        neo4j_user = os.getenv("NEO4J_USER", "not-set")
-        neo4j_password = os.getenv("NEO4J_PASSWORD", "not-set")
-        openai_api_key = os.getenv("OPENAI_API_KEY", "not-set")
-
+        # ETL Lambda
         etl_lambda = aws_lambda.DockerImageFunction(
             self,
             "EtlLambda",
             code=aws_lambda.DockerImageCode.from_image_asset(directory="etl"),
             architecture=aws_lambda.Architecture.ARM_64,
             environment={
-                "NEO4J_URI": neo4j_uri,
-                "NEO4J_USER": neo4j_user,
-                "NEO4J_PASSWORD": neo4j_password,
-                "OPENAI_API_KEY": openai_api_key,
+                "NEO4J_URI": secrets.secret_value_from_json("NEO4J_URI").to_string(),
+                "NEO4J_USER": secrets.secret_value_from_json("NEO4J_USER").to_string(),
+                "NEO4J_PASSWORD": secrets.secret_value_from_json(
+                    "NEO4J_PASSWORD"
+                ).to_string(),
+                "OPENAI_API_KEY": secrets.secret_value_from_json(
+                    "OPENAI_API_KEY"
+                ).to_string(),
             },
             timeout=Duration.minutes(5),
         )
 
+        # Create bucket
+        bucket_name = "hivanya-integrations"  # todo: this should be updated to be genrated using CDK
         try:
             s3_bucket = s3.Bucket.from_bucket_name(
                 self, "ExistingBucket", bucket_name=bucket_name
             )
         except ClientError as e:
             # Create the bucket if it does not exist
-            if e.response['Error']['Code'] == 'NoSuchBucket':
+            if e.response["Error"]["Code"] == "NoSuchBucket":
                 s3_bucket = s3.Bucket(
                     self,
                     "HivanyaIntegrationsBucket",

@@ -2,15 +2,15 @@ import os
 import json
 import boto3
 import logging
-from ..neo4j.embedding import Neo4jEmbeddingManager
-from ..neo4j.upload import Neo4jUploader
-from ..transforms.airbyte2jsonl import Airbyte2jsonlTransformer
-from ..utils.field_map import FIELD_MAP
-from etl.lambdas.graph_generator import (
+
+from etl.embedding import Neo4jEmbeddingManager
+from etl.transforms import (
+    Airbyte2jsonlTransformer,
     ConfluenceGraphGenerator,
     SlackGraphGenerator,
     JiraGraphGenerator,
 )
+from etl.neo4j.upload import Neo4jUploader
 
 # Initialize the logger
 logger = logging.getLogger()
@@ -30,12 +30,18 @@ neo4j_manager = Neo4jEmbeddingManager(
 )
 
 # Initialize Neo4jUploader
-neo4j_uploader = Neo4jUploader(
+uploader = Neo4jUploader(
     uri=os.getenv("NEO4J_URI"),
     user=os.getenv("NEO4J_USER"),
     password=os.getenv("NEO4J_PASSWORD"),
     neo4j_manager=neo4j_manager,
 )
+
+GRAPH_GENERATOR_MAP = {
+    "jira": JiraGraphGenerator,
+    "slack": SlackGraphGenerator,
+    "confluence": ConfluenceGraphGenerator,
+}
 
 
 def lambda_handler(event, context):
@@ -54,7 +60,7 @@ def lambda_handler(event, context):
         mapkey = "/".join(object_key.split("/")[1:3])
         logger.info(f"Mapkey: {mapkey}")
 
-        if mapkey not in FIELD_MAP:
+        if not airbyte2jsonl_transformer.can_transform(mapkey):
             logger.info(f"Skipping {object_key} as it does not match FIELD_MAP keys.")
             return {"statusCode": 200, "body": json.dumps(f"Skipped file {object_key}")}
 
@@ -71,12 +77,6 @@ def lambda_handler(event, context):
 
         graph_output_directory = "/tmp/graph_output"
         os.makedirs(graph_output_directory, exist_ok=True)
-
-        GRAPH_GENERATOR_MAP = {
-            "confluence": ConfluenceGraphGenerator,
-            "slack": SlackGraphGenerator,
-            "jira": JiraGraphGenerator,
-        }
 
         def get_generator(object_key):
             for key in GRAPH_GENERATOR_MAP.keys():
@@ -98,7 +98,7 @@ def lambda_handler(event, context):
         else:
             logger.info(f"No graph generator found for {object_key}")
 
-        neo4j_uploader.upload_files_to_neo4j(graph_output_directory)
+        uploader.upload_files_to_neo4j(graph_output_directory)
 
         return {
             "statusCode": 200,
