@@ -2,11 +2,11 @@ import os
 import json
 import boto3
 import logging
-from util import FIELD_MAP
-from neo4j_embedding_manager import Neo4jEmbeddingManager
-from airbyte2jsonl_transformer import Airbyte2jsonlTransformer
+from ..neo4j.embedding import Neo4jEmbeddingManager
+from ..neo4j.upload import Neo4jUploader
+from ..transforms.airbyte2jsonl import Airbyte2jsonlTransformer
+from ..utils.field_map import FIELD_MAP
 from graph_generator import ConfluenceGraphGenerator, SlackGraphGenerator, JiraGraphGenerator
-from neo4j_uploader import Neo4jUploader
 
 # Initialize the logger
 logger = logging.getLogger()
@@ -16,7 +16,7 @@ logger.setLevel(logging.INFO)
 s3 = boto3.client('s3')
 
 # Initialize the Transformer class
-airbyte2jsonl_transformer = Airbyte2jsonlTransformer(FIELD_MAP)
+airbyte2jsonl_transformer = Airbyte2jsonlTransformer()
 
 # Initialize Neo4jEmbeddingManager
 neo4j_manager = Neo4jEmbeddingManager(

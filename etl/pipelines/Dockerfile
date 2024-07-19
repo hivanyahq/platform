@@ -12,4 +12,4 @@ RUN ls -l ${LAMBDA_TASK_ROOT}
 RUN pip3 install -r requirements.txt
 
 # Set the CMD to your handler
-CMD ["etl_lambda.lambda_handler"]
+CMD ["lambda/neo4j.lambda_handler"]

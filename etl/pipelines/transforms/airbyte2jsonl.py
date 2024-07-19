@@ -2,13 +2,15 @@ import logging
 import csv
 import json
 
+from etl.pipelines.utils.field_map import FIELD_MAP
+
 # Initialize the logger
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 class Airbyte2jsonlTransformer:
-    def __init__(self, field_map):
-        self.field_map = field_map
+    def __init__(self):
+        self.field_map = FIELD_MAP
 
     def transform_airbyte_row(self, data, mapkey):
         """
