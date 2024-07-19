@@ -12,7 +12,7 @@ class Neo4jEmbeddingManager:
         self.neo4j_password = neo4j_password
         self.openai_key = openai_key
         self.driver = GraphDatabase.driver(neo4j_url, auth=(neo4j_user, neo4j_password))
-        self.embeddings_model = OpenAIEmbeddings()
+        self.embeddings_model = OpenAIEmbeddings(openai_api_key=openai_key)
         self.node_label_to_indexed_properties = {
             "atlassian_user": ["id", "display_name", "email"],
             "jira_comment": ["text", "author_id", "issue_id"],

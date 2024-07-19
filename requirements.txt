@@ -1,2 +1,3 @@
+botocore
 aws-cdk-lib
 python-dotenv
