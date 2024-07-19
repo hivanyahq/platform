@@ -1,0 +1,17 @@
+FROM public.ecr.aws/lambda/python:3.8
+
+# Set working directory
+WORKDIR ${LAMBDA_TASK_ROOT}
+
+# Copy and install slack dependencies
+COPY clients/slack/ ${LAMBDA_TASK_ROOT}/slack
+RUN pip install -r ${LAMBDA_TASK_ROOT}/slack/requirements.txt
+
+# Copy and install query-engine dependencies
+COPY query_engine ${LAMBDA_TASK_ROOT}/query_engine
+RUN pip install -e ${LAMBDA_TASK_ROOT}/query_engine
+
+
+# Update Python path with src files
+ENV PYTHONPATH="${PYTHONPATH}:${LAMBDA_TASK_ROOT}/slack/src"
+

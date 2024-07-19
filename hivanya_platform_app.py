@@ -4,6 +4,7 @@ import os
 from aws_cdk import App, Environment
 from core.cdk.core_hivanya_stack import CoreHivanyaStack
 from etl.cdk.etl_pipeline_stack import EtlPipelineStack
+from clients.slack.cdk.slack_bot_stack import SlackBotStack
 
 # Load from environment variables or provide default values
 AWS_ACCOUNT_ID = os.getenv("AWS_ACCOUNT_ID", "533267214222")
@@ -17,6 +18,9 @@ app = App()
 
 # Pass env directly to the stack
 core_hivanya_stack = CoreHivanyaStack(app, "CoreHivanyaStack", env=env)
+
+# etl_pipeline_stack = EtlPipelineStack(app, "EtlPipelineStack", env=env, core_hivanya_stack=core_hivanya_stack)
 etl_pipeline_stack = EtlPipelineStack(app, "EtlPipelineStack", env=env)
+slack_bot_stack = SlackBotStack(app, "SlackBotStack", env=env)
 
 app.synth()
