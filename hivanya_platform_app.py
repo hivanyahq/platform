@@ -19,7 +19,6 @@ app = App()
 # Pass env directly to the stack
 core_hivanya_stack = CoreHivanyaStack(app, "CoreHivanyaStack", env=env)
 
-# Assuming EtlPipelineStack requires additional parameters from CoreHivanyaStack
 # etl_pipeline_stack = EtlPipelineStack(app, "EtlPipelineStack", env=env, core_hivanya_stack=core_hivanya_stack)
 etl_pipeline_stack = EtlPipelineStack(app, "EtlPipelineStack", env=env)
 slack_bot_stack = SlackBotStack(app, "SlackBotStack", env=env)
