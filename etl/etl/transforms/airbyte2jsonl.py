@@ -2,7 +2,7 @@ import logging
 import csv
 import json
 
-from etl.pipelines.utils.field_map import FIELD_MAP
+from etl.utils.field_map import FIELD_MAP
 
 # Initialize the logger
 logger = logging.getLogger()
