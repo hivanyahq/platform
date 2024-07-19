@@ -11,6 +11,7 @@ setup(
         "openai",
         "python-dotenv",
         "langchain-community",
+        "tiktoken",
         "embeddings",
     ],
 )

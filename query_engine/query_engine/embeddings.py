@@ -3,12 +3,15 @@ from neo4j import GraphDatabase
 from langchain.embeddings.openai import OpenAIEmbeddings
 from openai import OpenAI
 from langchain.vectorstores import Neo4jVector
-from config import NEO4J_URL, NEO4J_USER, NEO4J_PASSWORD, OPENAI_API_KEY
 
 
 class Neo4jEmbeddingManager:
-    def __init__(self):
-        self.driver = GraphDatabase.driver(NEO4J_URL, auth=(NEO4J_USER, NEO4J_PASSWORD))
+    def __init__(self, neo4j_url, neo4j_user, neo4j_password, openai_key):
+        self.neo4j_url = neo4j_url
+        self.neo4j_user = neo4j_user
+        self.neo4j_password = neo4j_password
+        self.openai_key = openai_key
+        self.driver = GraphDatabase.driver(neo4j_url, auth=(neo4j_user, neo4j_password))
         self.embeddings_model = OpenAIEmbeddings()
         self.node_label_to_indexed_properties = {
             "atlassian_user": ["id", "display_name", "email"],
@@ -52,7 +55,7 @@ class Neo4jEmbeddingManager:
         self, node, properties, model="text-embedding-ada-002"
     ):
         text_data = json.dumps({k: node[k] for k in properties if k in node})
-        openai_client = OpenAI(api_key=OPENAI_API_KEY)
+        openai_client = OpenAI(api_key=self.openai_key)
         return (
             openai_client.embeddings.create(input=[text_data], model=model)
             .data[0]
@@ -82,9 +85,9 @@ class Neo4jEmbeddingManager:
         indexed_properties = self.node_label_to_indexed_properties[node_label]
         vector_index = Neo4jVector.from_existing_graph(
             embedding=self.embeddings_model,
-            url=NEO4J_URL,
-            username=NEO4J_USER,
-            password=NEO4J_PASSWORD,
+            url=self.neo4j_url,
+            username=self.neo4j_user,
+            password=self.neo4j_password,
             node_label=node_label,
             index_name=f"{node_label}s",
             text_node_properties=indexed_properties,

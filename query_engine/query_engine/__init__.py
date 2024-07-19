@@ -1,3 +1,3 @@
-from core import QueryEngine
+from query_engine.main import QueryEngine
 
 __all__ = ["QueryEngine"]

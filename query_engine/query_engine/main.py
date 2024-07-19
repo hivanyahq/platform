@@ -1,23 +1,18 @@
 import os
-from dotenv import load_dotenv
 from langchain.agents import initialize_agent, AgentType, Tool
 from langchain.chat_models import ChatOpenAI
 
 from query_engine.agents import initialize_agents
 from query_engine.prompt_templates import retrieval_qa_chat_prompt
 
-# Load environment variables from .env file globally
-load_dotenv()
-
-
 class QueryEngine(object):
     def __init__(
         self, neo4j_uri=None, neo4j_user=None, neo4j_password=None, openai_key=None
     ) -> None:
-        self.neo4j_uri = neo4j_uri or os.getenv("NEO4J_URI")
-        self.neo4j_user = neo4j_user or os.getenv("NEO4J_USER")
-        self.neo4j_password = neo4j_password or os.getenv("NEO4J_PASSWORD")
-        self.openai_key = openai_key or os.getenv("OPENAI_API_KEY")
+        self.neo4j_uri = neo4j_uri
+        self.neo4j_user = neo4j_user
+        self.neo4j_password = neo4j_password
+        self.openai_key = openai_key
 
         # Ensure all required parameters are provided
         if not all(
@@ -26,7 +21,9 @@ class QueryEngine(object):
             raise ValueError("Missing required configuration parameters")
 
         # First step to intialize the agents for each platform
-        jira_agent, slack_agent, confluence_agent, user_agent = initialize_agents()
+        jira_agent, slack_agent, confluence_agent, user_agent = initialize_agents(
+            self.neo4j_uri, self.neo4j_user, self.neo4j_password, self.openai_key
+        )
         self.tools = [
             Tool(
                 name="Jira Agent",
