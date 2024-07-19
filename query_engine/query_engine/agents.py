@@ -28,7 +28,9 @@ def create_chain(retriever, retrieval_qa_chat_prompt, api_key):
 
 
 def initialize_agents(neo4j_url, neo4j_user, neo4j_password, openai_key):
-    embedding_manager = Neo4jEmbeddingManager(neo4j_url, neo4j_user, neo4j_password, openai_key)
+    embedding_manager = Neo4jEmbeddingManager(
+        neo4j_url, neo4j_user, neo4j_password, openai_key
+    )
     chains = {}
     labels = [
         "atlassian_user",

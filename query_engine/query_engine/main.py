@@ -5,6 +5,7 @@ from langchain.chat_models import ChatOpenAI
 from query_engine.agents import initialize_agents
 from query_engine.prompt_templates import retrieval_qa_chat_prompt
 
+
 class QueryEngine(object):
     def __init__(
         self, neo4j_uri=None, neo4j_user=None, neo4j_password=None, openai_key=None

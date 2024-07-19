@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 
 from query_engine import QueryEngine
 
-load_dotenv('.env')
+load_dotenv(".env")
 
 NEO4J_URI = os.getenv("NEO4J_URI")
 NEO4J_USER = os.getenv("NEO4J_USER")
@@ -16,6 +16,6 @@ questions = [
     "Who is working on building knowledge graph in neo4j?",
     "Who is working on implementing ETL pipeline to create a unified index?",
 ]
-for  question in questions:
+for question in questions:
     response = engine.ask(question)
     print(f"response: {response}")
