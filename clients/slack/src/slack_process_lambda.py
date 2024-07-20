@@ -3,28 +3,34 @@ import json
 import boto3
 import logging
 from slack_bolt import App
+from slack_sdk import WebClient
 from slack_bolt.adapter.aws_lambda import SlackRequestHandler
 
-from query_engine import core as qe_core
+#from query_engine import QueryEngine
 
 SlackRequestHandler.clear_all_log_handlers()
 logging.basicConfig(format="%(asctime)s %(message)s", level=logging.DEBUG)
 
 
 IGNORED_MESSAGE_EVENTS = ("bot_message", "message_deleted")
-SLACK_BOT_SECRET = json.loads(
+SLACK_BOT_SECRETS = json.loads(
     boto3.client("secretsmanager").get_secret_value(
         SecretId=os.environ["SLACK_SECRETS_NAME"]
     )["SecretString"]
 )
-# os.environ["SLACK_SIGNING_SECRET"] = SLACK_BOT_SECRET['signingSecret']
-# os.environ["SLACK_BOT_TOKEN"] = SLACK_BOT_SECRET['botToken']
+NEO4J_URI = SLACK_BOT_SECRETS["NEO4J_URI"]
+NEO4J_USER = SLACK_BOT_SECRETS["NEO4J_USER"]
+NEO4J_PASSWORD = SLACK_BOT_SECRETS["NEO4J_PASSWORD"]
+OPENAI_API_KEY = SLACK_BOT_SECRETS["OPENAI_API_KEY"]
 
+#engine = QueryEngine(NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD, OPENAI_API_KEY)
 app = App(
     process_before_response=True,
-    token=SLACK_BOT_SECRET["botToken"],
-    signing_secret=SLACK_BOT_SECRET["signingSecret"],
+    token=SLACK_BOT_SECRETS['botToken'],
+    signing_secret=SLACK_BOT_SECRETS['signingSecret'],
 )
+
+client = WebClient(token=SLACK_BOT_SECRETS['botToken'])
 
 
 # New functionality
@@ -80,8 +86,12 @@ def update_home_tab(client, event, logger):
 )
 def handle_message(body, say, logger):
     logger.info(body)
-    reply = qe_core.generate_reponse(body)
-    say(f"{reply}")
+    query = body['event']['text']
+    print(f"query is: {query}")
+    say(f"Hi, did you say {query}")
+    #reply = engine.ask(body)
+    #say(f"{reply.get('response')}")
+    #client.chat_postMessage(channel='D07AM8G06RY', text=reply.get('response'))
 
 
 def lambda_handler(event, context):
