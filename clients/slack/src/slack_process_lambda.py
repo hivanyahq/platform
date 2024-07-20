@@ -13,11 +13,10 @@ logging.basicConfig(format="%(asctime)s %(message)s", level=logging.DEBUG)
 
 
 IGNORED_MESSAGE_EVENTS = ("bot_message", "message_deleted")
-
-SLACK_BOT_SECRETS = json.loads(
-    boto3.client('secretsmanager').get_secret_value(
-        SecretId=os.environ['SLACK_SECRETS_NAME']
-    )['SecretString']
+SLACK_BOT_SECRET = json.loads(
+    boto3.client("secretsmanager").get_secret_value(
+        SecretId=os.environ["SLACK_SECRETS_NAME"]
+    )["SecretString"]
 )
 NEO4J_URI = SLACK_BOT_SECRETS["NEO4J_URI"]
 NEO4J_USER = SLACK_BOT_SECRETS["NEO4J_USER"]
@@ -37,52 +36,53 @@ client = WebClient(token=SLACK_BOT_SECRETS['botToken'])
 # New functionality
 @app.event("app_home_opened")
 def update_home_tab(client, event, logger):
-  try:
-    client.views_publish(
-      user_id=event["user"],
-      view={
-        "type": "home",
-        "callback_id": "home_view",
-        # body of the view
-        "blocks": [
-          {
-            "type": "section",
-            "text": {
-              "type": "mrkdwn",
-              "text": "Welcome to HiVanya! :tada:"
-            }
-          },
-          {"type": "divider"},
-          {
-            "type": "section",
-            "text": {
-              "type": "mrkdwn",
-              "text": "Single Source of Truth for all Product & Engineering Information."
-            }
-          },
-          {
-            "type": "actions",
-            "elements": [
-              {
-                "type": "button",
-                "text": {
-                  "type": "plain_text",
-                  "text": "Visit HiVanya Webpage"
-                },
-                "url": "https://hivanya.com"
-              }
-            ]
-          }
-        ]
-      }
-    )
+    try:
+        client.views_publish(
+            user_id=event["user"],
+            view={
+                "type": "home",
+                "callback_id": "home_view",
+                # body of the view
+                "blocks": [
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "Welcome to HiVanya! :tada:",
+                        },
+                    },
+                    {"type": "divider"},
+                    {
+                        "type": "section",
+                        "text": {
+                            "type": "mrkdwn",
+                            "text": "Single Source of Truth for all Product & Engineering Information.",
+                        },
+                    },
+                    {
+                        "type": "actions",
+                        "elements": [
+                            {
+                                "type": "button",
+                                "text": {
+                                    "type": "plain_text",
+                                    "text": "Visit HiVanya Webpage",
+                                },
+                                "url": "https://hivanya.com",
+                            }
+                        ],
+                    },
+                ],
+            },
+        )
 
-  except Exception as e:
-    logger.error(f"Error publishing home tab: {e}")
+    except Exception as e:
+        logger.error(f"Error publishing home tab: {e}")
+
 
 @app.event(
     "message",
-    matchers=[lambda message: message.get("subtype") not in IGNORED_MESSAGE_EVENTS]
+    matchers=[lambda message: message.get("subtype") not in IGNORED_MESSAGE_EVENTS],
 )
 def handle_message(body, say, logger):
     logger.info(body)
@@ -99,4 +99,3 @@ def lambda_handler(event, context):
     slack_response = slack_handler.handle(event, context)
     print(f"slack_response: {slack_response}")
     return slack_response
-
