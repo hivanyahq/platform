@@ -73,8 +73,9 @@ def update_home_tab(client, event, logger):
 )
 def handle_message(body, say, logger):
     logger.info(body)
-    #reply = qe_core.generate_reponse(body)
-    say(f"Did you say {body['event']['text']} ?")
+    query = body['event']['text']
+    reply = qe_core.generate_reponse(query)
+    # say(f"Did you say {query} ?")
 
 
 def lambda_handler(event, context):
