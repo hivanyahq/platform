@@ -13,7 +13,7 @@ logging.basicConfig(format="%(asctime)s %(message)s", level=logging.DEBUG)
 
 
 IGNORED_MESSAGE_EVENTS = ("bot_message", "message_deleted")
-SLACK_BOT_SECRET = json.loads(
+SLACK_BOT_SECRETS = json.loads(
     boto3.client("secretsmanager").get_secret_value(
         SecretId=os.environ["SLACK_SECRETS_NAME"]
     )["SecretString"]

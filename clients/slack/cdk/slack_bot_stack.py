@@ -4,7 +4,6 @@ from aws_cdk import (
     aws_apigateway as apigateway,
     aws_lambda as lambda_,
     aws_secretsmanager as secretsmanager,
-    aws_ssm as ssm,
 )
 from constructs import Construct
 
