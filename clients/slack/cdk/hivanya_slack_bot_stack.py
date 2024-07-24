@@ -3,7 +3,6 @@ from aws_cdk import (
     Duration,
     aws_apigateway as apigateway,
     aws_lambda as lambda_,
-    aws_ssm as ssm,
     aws_iam as iam,
 )
 from constructs import Construct
@@ -27,7 +26,7 @@ class HiVanyaSlackBotStack(Stack):
         # Define lambda for auth
         self.slack_process_function = lambda_.DockerImageFunction(
             self,
-            "slackProcessLambda",
+            "SlackProcessLambda",
             code=lambda_.DockerImageCode.from_image_asset(
                 ".",
                 file="Dockerfile.clients.slack",
@@ -36,6 +35,10 @@ class HiVanyaSlackBotStack(Stack):
             environment={
                 "BOT_TOKEN": secrets.secret_value_from_json("botToken").to_string(),
                 "SIGNING_SECRET": secrets.secret_value_from_json("signingSecret").to_string(),
+                "NEO4J_URI": secrets.secret_value_from_json("NEO4J_URI").to_string(),
+                "NEO4J_USER": secrets.secret_value_from_json("NEO4J_USER").to_string(),
+                "NEO4J_PASSWORD": secrets.secret_value_from_json("NEO4J_PASSWORD").to_string(),
+                "OPENAI_API_KEY": secrets.secret_value_from_json("OPENAI_API_KEY").to_string(),
             },
             architecture=lambda_.Architecture.ARM_64,
             role=self.lambda_role,

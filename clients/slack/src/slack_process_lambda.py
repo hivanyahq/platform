@@ -1,11 +1,10 @@
 import os
-import json
-import boto3
 import logging
 from slack_bolt import App
+# from slack_sdk import WebClient
 from slack_bolt.adapter.aws_lambda import SlackRequestHandler
 
-from query_engine import core as qe_core
+from query_engine import QueryEngine
 
 SlackRequestHandler.clear_all_log_handlers()
 logging.basicConfig(format="%(asctime)s %(message)s", level=logging.DEBUG)
@@ -13,11 +12,21 @@ logging.basicConfig(format="%(asctime)s %(message)s", level=logging.DEBUG)
 
 IGNORED_MESSAGE_EVENTS = ("bot_message", "message_deleted")
 
+engine = QueryEngine(
+    os.environ["NEO4J_URI"],
+    os.environ["NEO4J_USER"],
+    os.environ["NEO4J_PASSWORD"],
+    os.environ["OPENAI_API_KEY"], 
+)
+
+
 app = App(
     process_before_response=True,
     token=os.environ["BOT_TOKEN"],
     signing_secret=os.environ["SIGNING_SECRET"],
 )
+
+# client = WebClient(token=SLACK_BOT_SECRETS['botToken'])
 
 
 # New functionality
@@ -74,8 +83,13 @@ def update_home_tab(client, event, logger):
 def handle_message(body, say, logger):
     logger.info(body)
     query = body['event']['text']
-    reply = qe_core.generate_reponse(query)
-    # say(f"Did you say {query} ?")
+    print(f"query is: {query}")
+    
+    #say(f"Hi! did you say {query}")
+
+    #reply = engine.ask(body)
+    #say(f"{reply.get('response')}")
+    #client.chat_postMessage(channel='D07AM8G06RY', text=reply.get('response'))
 
 
 def lambda_handler(event, context):
