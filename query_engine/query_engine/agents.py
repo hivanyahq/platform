@@ -59,16 +59,10 @@ def initialize_agents(neo4j_url, neo4j_user, neo4j_password, openai_key):
         input_variables=["question"], template=CYPHER_GENERATION_TEMPLATE
     )
 
-    print("before Neo4jGraph")
-
     # Creating cypher query tool
     graph = Neo4jGraph(url=neo4j_url, username=neo4j_user, password=neo4j_password)
 
-    print("after Neo4jGraph")
-
-    print("before refresh_schema")
     graph.refresh_schema()
-    print("after refresh_schema")
 
     graphChain = GraphCypherQAChain.from_llm(
         cypher_prompt=CYPHER_GENERATION_PROMPT,
@@ -77,7 +71,6 @@ def initialize_agents(neo4j_url, neo4j_user, neo4j_password, openai_key):
         verbose=True,
     )
 
-    print("before create tools")
     # Creating Jira tools for jira agent
     jira_tools = [
         Tool(
@@ -179,8 +172,6 @@ def initialize_agents(neo4j_url, neo4j_user, neo4j_password, openai_key):
         ),
     ]
 
-    print("after create tools")
-
     # Initializing the agents
     jira_agent = initialize_agent(
         tools=jira_tools,
@@ -210,7 +201,6 @@ def initialize_agents(neo4j_url, neo4j_user, neo4j_password, openai_key):
         prompt=retrieval_qa_chat_prompt,
         verbose=True,
     )
-    print("after initialize_agent")
     return jira_agent, slack_agent, confluence_agent, user_agent
 
 
