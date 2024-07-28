@@ -47,7 +47,7 @@ def initialize_agents(neo4j_url, neo4j_user, neo4j_password, openai_key):
 
     # Creating retrieveal chains for tool mentioned in labels
     for label in labels:
-        embedding_manager.update_embeddings_for_neo4j(label)
+        #embedding_manager.update_embeddings_for_neo4j(label)
 
         retriever = embedding_manager.get_retriever(label)
         print("created index of:", label)
@@ -63,6 +63,7 @@ def initialize_agents(neo4j_url, neo4j_user, neo4j_password, openai_key):
     graph = Neo4jGraph(url=neo4j_url, username=neo4j_user, password=neo4j_password)
 
     graph.refresh_schema()
+
     graphChain = GraphCypherQAChain.from_llm(
         cypher_prompt=CYPHER_GENERATION_PROMPT,
         llm=ChatOpenAI(temperature=0, model_name="gpt-4", api_key=openai_key),

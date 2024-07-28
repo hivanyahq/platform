@@ -20,10 +20,13 @@ class QueryEngine(object):
         ):
             raise ValueError("Missing required configuration parameters")
 
+        print("main >> QueryEngine >> before initialize_agents")
         # First step to intialize the agents for each platform
         jira_agent, slack_agent, confluence_agent, user_agent = initialize_agents(
             self.neo4j_uri, self.neo4j_user, self.neo4j_password, self.openai_key
         )
+
+        print("main >> QueryEngine >> after initialize_agents")
         self.tools = [
             Tool(
                 name="Jira Agent",
@@ -51,7 +54,7 @@ class QueryEngine(object):
             llm=ChatOpenAI(temperature=0, model_name="gpt-4"),
             agent_type=AgentType.OPENAI_FUNCTIONS,
             prompt=retrieval_qa_chat_prompt,
-            verbose=True,
+            #verbose=True,
         )
 
     def ask(self, query):
