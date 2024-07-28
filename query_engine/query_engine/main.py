@@ -49,13 +49,13 @@ class QueryEngine(object):
                 description="Delegates to the User Info agent which will provide information for user about the id to another agents.",
             ),
         ]
-        # self.agent = initialize_agent(
-        #     tools=self.tools,
-        #     llm=ChatOpenAI(temperature=0, model_name="gpt-4"),
-        #     agent_type=AgentType.OPENAI_FUNCTIONS,
-        #     prompt=retrieval_qa_chat_prompt,
-        #     #verbose=True,
-        # )
+        self.agent = initialize_agent(
+            tools=self.tools,
+            llm=ChatOpenAI(temperature=0, model_name="gpt-4"),
+            agent_type=AgentType.OPENAI_FUNCTIONS,
+            prompt=retrieval_qa_chat_prompt,
+            #verbose=True,
+        )
 
     def ask(self, query):
         return {"response": self.agent.run(query)}
