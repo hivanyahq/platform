@@ -54,7 +54,7 @@ class Airbyte2jsonlTransformer(object):
                 "assignee_id": "data['fields']['assignee']['accountId']",
                 "created": "data['fields']['created']",
                 "creator_id": "data['fields']['creator']['accountId']",
-                "description": "data['fields']['issuetype']['description']",
+                "description": "data['renderedFields']['description']",
                 "id": "data['id']",
                 "issue_type": "data['fields']['issuetype']['name']",
                 "key": "data['key']",
